@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+.card-img-top {
+    height: 220px;
+    object-fit: cover;
+    width: 100%;
+}
+</style>
+<div class="container mt-4">
+    <h2 class="mb-4">Products in {{ category.name }}</h2>
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for product in products %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="card-text">{{ product.description|truncatewords:20 }}</p>
+                    <span class="badge bg-success mb-2">${{ product.price }}</span>
+                    <p class="mb-1">Stock: {{ product.stock }} {{ product.unit }}</p>
+                    {% if product.is_avaiable %}
+                        <span class="badge bg-primary">Available</span>
+                    {% else %}
+                        <span class="badge bg-danger">Out of Stock</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col">
+            <div class="alert alert-info w-100">No products found in this category.</div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="mt-4">
+        <a href="/" class="btn btn-secondary">Back to Home</a>
+    </div>
+</div>
+{% endblock %}

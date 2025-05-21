@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+.card-img-top {
+    height: 220px;
+    object-fit: cover;
+    width: 100%;
+}
+.featured-img {
+    height: 250px;
+    object-fit: cover;
+    width: 75%;
+    max-width: 100%;
+    margin: 0 auto;
+    display: block;
+}
+.carousel-control-prev, .carousel-control-next {
+    width: 60px;
+    height: 60px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.carousel-control-prev-icon, .carousel-control-next-icon {
+    background-color: rgba(0,0,0,0.7);
+    border-radius: 50%;
+    padding: 20px; /* Increased padding for larger background */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    width: 32px;
+    height: 32px;
+    background-size: 32px 32px;
+}
+#featuredCarousel {
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.12);
+    border-radius: 1rem;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
+}
+</style>
+
+<div class="container mt-4">
+    <!-- Featured Products Carousel -->
+    <h2 class="mb-4">Featured Products</h2>
+    <div id="featuredCarousel" class="carousel slide mb-5" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            {% for product in featured_products %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                <div class="row justify-content-center align-items-center">
+                    <div class="col-md-6 text-center">
+                        <img src="{{ product.image.url }}" class="featured-img rounded" alt="{{ product.name }}">
+                        <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded p-2 mt-2">
+                            <h5>{{ product.name }}</h5>
+                            <p>{{ product.description|truncatewords:15 }}</p>
+                            <span class="badge bg-success">${{ product.price }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="carousel-item active">
+                <div class="text-center">No featured products available.</div>
+            </div>
+            {% endfor %}
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#featuredCarousel" data-bs-slide="prev" id="carouselPrevBtn">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#featuredCarousel" data-bs-slide="next" id="carouselNextBtn">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+
+    <!-- Categories Section -->
+    <h2 class="mb-4">Categories</h2>
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for category in categories %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <img src="{{ category.image.url }}" class="card-img-top" alt="{{ category.name }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ category.name }}</h5>
+                </div>
+                <a href="{% url 'category' category.slug %}" class="stretched-link"></a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col">
+            <div class="alert alert-info w-100">No categories available.</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const prevBtn = document.getElementById('carouselPrevBtn');
+    const nextBtn = document.getElementById('carouselNextBtn');
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowLeft') {
+            prevBtn.click();
+        } else if (e.key === 'ArrowRight') {
+            nextBtn.click();
+        }
+    });
+});
+</script>
+{% endblock %}

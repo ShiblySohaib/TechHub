@@ -119,6 +119,13 @@ def profile_view(request):
         user.country = request.POST.get("country", user.country)
         user.mobile = request.POST.get("mobile", user.mobile)
         if request.FILES.get("profile_picture"):
+            if user.profile_picture and hasattr(user.profile_picture, 'path') and 'default-profile.jpg' not in user.profile_picture.name:
+                import os
+                try:
+                    if os.path.isfile(user.profile_picture.path):
+                        os.remove(user.profile_picture.path)
+                except Exception:
+                    pass
             user.profile_picture = request.FILES.get("profile_picture")
         user.save()
         messages.success(request, "Profile updated successfully.")
