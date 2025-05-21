@@ -61,10 +61,6 @@ def logout_view(request):
     messages.success(request, "You have been logged out.")
     return redirect("login")
 
-@login_required
-def profile_view(request):
-    return render(request, "accounts/profile.html")
-
 
 
 def forgot_password_view(request):
@@ -110,3 +106,42 @@ def reset_password_view(request, uidb64, token):
         return redirect("login")
     
 
+@login_required
+def profile_view(request):
+    user = request.user
+    if request.method == "POST":
+        user.email = request.POST.get("email", user.email)
+        user.first_name = request.POST.get("first_name", user.first_name)
+        user.last_name = request.POST.get("last_name", user.last_name)
+        user.address = request.POST.get("address", user.address)
+        user.city = request.POST.get("city", user.city)
+        user.postcode = request.POST.get("postcode", user.postcode)
+        user.country = request.POST.get("country", user.country)
+        user.mobile = request.POST.get("mobile", user.mobile)
+        if request.FILES.get("profile_picture"):
+            user.profile_picture = request.FILES.get("profile_picture")
+        user.save()
+        messages.success(request, "Profile updated successfully.")
+    return render(request, "accounts/profile.html", {"user": user})
+
+
+@login_required
+def change_password_view(request):
+    if request.method == "POST":
+        current_password = request.POST.get("current_password")
+        new_password = request.POST.get("new_password")
+        confirm_password = request.POST.get("confirm_password")
+
+        if new_password != confirm_password:
+            messages.error(request, "New passwords do not match.")
+            return render(request, "accounts/changePassword.html")
+
+        user = authenticate(request, email=request.user.email, password=current_password)
+        if user is not None:
+            user.set_password(new_password)
+            user.save()
+            messages.success(request, "Password changed successfully.")
+            return redirect("login")
+        else:
+            messages.error(request, "Current password is incorrect.")
+    return render(request, "accounts/changePassword.html")

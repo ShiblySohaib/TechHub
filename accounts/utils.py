@@ -70,14 +70,14 @@ def send_password_reset_email(request, user):
     email.send()
 
 
-def test_password_reset_email(request, user):
-    from django.contrib.auth.tokens import default_token_generator
-    from django.utils.encoding import force_bytes
-    from django.utils.http import urlsafe_base64_encode
-    from django.contrib.sites.shortcuts import get_current_site
+# def test_password_reset_email(request, user):
+#     from django.contrib.auth.tokens import default_token_generator
+#     from django.utils.encoding import force_bytes
+#     from django.utils.http import urlsafe_base64_encode
+#     from django.contrib.sites.shortcuts import get_current_site
 
-    token = default_token_generator.make_token(user)
-    uid = urlsafe_base64_encode(force_bytes(user.id))
-    current_site = get_current_site(request)
-    password_reset_link = f"/accounts/reset-password/{uid}/{token}"
-    return password_reset_link
+#     token = default_token_generator.make_token(user)
+#     uid = urlsafe_base64_encode(force_bytes(user.id))
+#     current_site = get_current_site(request)
+#     password_reset_link = f"/accounts/reset-password/{uid}/{token}"
+#     return password_reset_link

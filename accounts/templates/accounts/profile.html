@@ -1,7 +1,100 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>THIS IS THE PROFILE PAGE</h1>
-<h1>THIS IS THE PROFILE PAGE</h1>
-<h1>THIS IS THE PROFILE PAGE</h1>
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+            <div class="card-body">
+                <h3 class="card-title text-center mb-4">Edit Profile</h3>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{% if 'error' in message.tags %}danger{% else %}{{ message.tags }}{% endif %}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    <div class="d-flex flex-column align-items-center mb-4 position-relative">
+                        <div style="position: relative; display: inline-block;">
+                            <img id="profile-img-preview" src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}/media/profile_pics/default-profile.jpg{% endif %}" alt="Profile Picture" class="border profile-img-square" style="width: 120px; height: 120px; object-fit: cover;">
+                            <label for="id_profile_picture" class="profile-img-label" style="position: absolute; bottom: 0; left: 0; width: 100%; text-align: center; background: rgba(255,255,255,0.85); color: #007bff; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; padding: 4px 0; cursor: pointer; opacity: 0; transition: opacity 0.2s; font-weight: 500;">
+                                Change
+                                <input type="file" id="id_profile_picture" name="profile_picture" accept="image/*" style="display: none;" onchange="previewProfileImage(event)">
+                            </label>
+                        </div>
+                    </div>
+                    <style>
+                        .profile-img-square {
+                            border-radius: 4px !important;
+                        }
+                        .profile-img-label {
+                            pointer-events: none;
+                        }
+                        .profile-img-square:hover + .profile-img-label,
+                        .profile-img-label:hover {
+                            opacity: 1 !important;
+                            pointer-events: auto;
+                        }
+                        .profile-img-square:hover {
+                            filter: brightness(0.85);
+                        }
+                        .profile-img-label {
+                            opacity: 0;
+                        }
+                        .profile-img-square:focus + .profile-img-label {
+                            opacity: 1 !important;
+                            pointer-events: auto;
+                        }
+                    </style>
+                    <script>
+                        function previewProfileImage(event) {
+                            const [file] = event.target.files;
+                            if (file) {
+                                const reader = new FileReader();
+                                reader.onload = function(e) {
+                                    document.getElementById('profile-img-preview').src = e.target.result;
+                                };
+                                reader.readAsDataURL(file);
+                            }
+                        }
+                    </script>
+                    <div class="mb-3">
+                        <label for="id_email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="id_email" name="email" value="{{ user.email }}" required>
+                    </div>
+                    <div class="mb-3 text-end">
+                        <a href="/accounts/change-password/" class="btn btn-outline-primary w-100" style="font-size: 1rem;">Change Password</a>
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_first_name" class="form-label">First Name</label>
+                        <input type="text" class="form-control" id="id_first_name" name="first_name" value="{{ user.first_name }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_last_name" class="form-label">Last Name</label>
+                        <input type="text" class="form-control" id="id_last_name" name="last_name" value="{{ user.last_name }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_address" class="form-label">Address</label>
+                        <input type="text" class="form-control" id="id_address" name="address" value="{{ user.address }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_city" class="form-label">City</label>
+                        <input type="text" class="form-control" id="id_city" name="city" value="{{ user.city }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_postcode" class="form-label">Postcode</label>
+                        <input type="text" class="form-control" id="id_postcode" name="postcode" value="{{ user.postcode }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_country" class="form-label">Country</label>
+                        <input type="text" class="form-control" id="id_country" name="country" value="{{ user.country }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_mobile" class="form-label">Mobile</label>
+                        <input type="text" class="form-control" id="id_mobile" name="mobile" value="{{ user.mobile }}">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock content %}
-
