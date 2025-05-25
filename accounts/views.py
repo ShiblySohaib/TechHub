@@ -16,7 +16,7 @@ def signup_view(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            #send_verification_email(request, user)
+            send_verification_email(request, user)
             return redirect("login")
             #test verification
             # verification_link = test_verification_email(request, user)
