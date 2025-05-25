@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="max-width: 900px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 16px rgba(0,0,0,0.08); padding: 32px;">
+  <div style="display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap;">
+    <div style="flex: 1 1 300px; max-width: 350px;">
+      <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width: 100%; border-radius: 10px; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.07);">
+    </div>
+    <div style="flex: 2 1 400px;">
+      <h2 style="font-size: 2.2rem; margin-bottom: 12px;">{{ product.name }}</h2>
+      <p style="font-size: 1.1rem; color: #666; margin-bottom: 18px;">{{ product.description }}</p>
+      <div style="font-size: 1.3rem; font-weight: bold; color: #2d7a2d; margin-bottom: 18px;">${{ product.price }}</div>
+      <div style="margin-bottom: 10px;">
+        <span style="background: #f0f0f0; color: #555; padding: 4px 10px; border-radius: 6px; font-size: 0.95rem;">Category: {{ product.category.name }}</span>
+      </div>
+      <div style="margin-bottom: 10px; font-size: 1.05rem; color: #2d7a2d;">
+        In Stock: {{ product.stock }} {{ product.unit }}
+      </div>
+      {% if product.stock > 0 %}
+      <div style="margin-top: 20px; display: flex; align-items: center; gap: 12px;">
+        <form method="post" action="{% url 'add_cart' product.slug %}" style="display: flex; align-items: center; gap: 8px;">
+          {% csrf_token %}
+          <button type="button" onclick="changeAmount(-1)" style="background: #eee; border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 1.3rem; color: #2d7a2d; cursor: pointer;">-</button>
+          <input id="cart-amount" name="amount" type="number" value="1" min="1" max="{{ product.stock }}" style="width: 48px; text-align: center; font-size: 1.1rem; border: 1px solid #ccc; border-radius: 6px; padding: 4px 0;">
+          <button type="button" onclick="changeAmount(1)" style="background: #eee; border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 1.3rem; color: #2d7a2d; cursor: pointer;">+</button>
+          <button type="submit" style="background: #2d7a2d; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 1.1rem; cursor: pointer; transition: background 0.2s;">Add to Cart</button>
+        </form>
+        <script>
+          function changeAmount(delta) {
+            var input = document.getElementById('cart-amount');
+            var value = parseInt(input.value) || 1;
+            value += delta;
+            if (value < 1) value = 1;
+            if (value > {{ product.stock }}) value = {{ product.stock }};
+            input.value = value;
+          }
+        </script>
+      </div>
+      {% else %}
+      <div style="margin-top: 20px; color: #b71c1c; font-weight: bold; font-size: 1.15rem;">Not available</div>
+      {% endif %}
+    </div>
+  </div>
+  <hr style="margin: 40px 0 24px 0; border: none; border-top: 1px solid #eee;">
+  <div>
+    {% if user.is_authenticated and not user.is_staff %}
+      {% if not user_review_pending_approval %}
+        <form method="post" action="" style="margin-bottom: 36px; background: #f8f8f8; padding: 24px; border-radius: 10px; box-shadow: 0 1px 6px rgba(0,0,0,0.04);">
+          {% csrf_token %}
+          <h3 style="font-size: 1.2rem; margin-bottom: 18px;">Add Your Review</h3>
+          <label for="rating" style="font-weight: 500;">Rating:</label>
+          <input type="range" id="rating" name="rating" min="1" max="5" value="5" style="width: 180px; vertical-align: middle; margin: 0 10px;">
+          <span id="rating-value" style="font-weight: bold; color: #2d7a2d;">5</span> / 5
+          <script>
+            document.addEventListener('DOMContentLoaded', function() {
+              var slider = document.getElementById('rating');
+              var output = document.getElementById('rating-value');
+              if(slider && output) {
+                slider.oninput = function() {
+                  output.textContent = this.value;
+                }
+              }
+            });
+          </script>
+          <div style="margin-top: 18px;">
+            <label for="review" style="font-weight: 500;">Your Review:</label><br>
+            <textarea id="review" name="review" rows="3" style="width: 100%; border-radius: 6px; border: 1px solid #ccc; padding: 10px; margin-top: 6px; font-size: 1rem;"></textarea>
+          </div>
+          <button type="submit" style="margin-top: 18px; background: #2d7a2d; color: #fff; border: none; padding: 10px 28px; border-radius: 8px; font-size: 1.05rem; cursor: pointer;">Submit Review</button>
+        </form>
+      {% else %}
+        <div style="margin-bottom: 36px; background: #fffbe6; padding: 18px; border-radius: 8px; border: 1px solid #ffe58f; color: #ad8b00;">
+          Your review is pending admin approval.
+        </div>
+      {% endif %}
+    {% endif %}
+  </div>
+  <div>
+    <h3 style="font-size: 1.5rem; margin-bottom: 18px;">Reviews</h3>
+    {% if reviews %}
+      {% for review in reviews %}
+        <div style="margin-bottom: 22px; padding-bottom: 16px; border-bottom: 1px solid #f0f0f0;">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+            <strong>{{ review.user.get_full_name|default:review.user.email }}</strong>
+            <span style="color: #aaa; font-size: 0.95rem;">{{ review.created_at|date:'M d, Y H:i' }}</span>
+            <span style="margin-left: 12px; color: #888; font-size: 1.05rem;">Rating: {{ review.rating }}/5</span>
+          </div>
+          <div style="font-size: 1.08rem; color: #444;">{{ review.review }}</div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p style="color: #888;">No reviews yet. Be the first to review this product!</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

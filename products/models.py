@@ -49,6 +49,12 @@ class Product(TimeStampedModel):
     def __str__(self):
         return f"{self.id} - {self.name}"
     
+    def average_approved_rating(self):
+        approved_reviews = self.reviews.filter(is_approved=True)
+        if approved_reviews.exists():
+            return round(approved_reviews.aggregate(models.Avg('rating'))['rating__avg'], 2)
+        return None
+    
 
 
 class ProductImage(models.Model):
@@ -59,3 +65,21 @@ class ProductImage(models.Model):
 
     def __str__(self):
         return f"Image for {self.product.name}"
+
+
+
+class Review(TimeStampedModel):
+    product = models.ForeignKey(
+        Product, related_name="reviews", on_delete=models.CASCADE
+    )
+    user = models.ForeignKey(
+        CustomUser, related_name="reviews", on_delete=models.CASCADE
+    )
+
+    rating = models.FloatField()
+    review = models.TextField()
+
+    is_approved = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.is_approved} - Review by {self.user.first_name} for {self.product.name}"

@@ -8,6 +8,7 @@ from .views import(
     forgot_password_view,
     reset_password_view,
     change_password_view,
+    user_reviews_view,  # added
 )
 
 urlpatterns = [
@@ -19,5 +20,6 @@ urlpatterns = [
     path('forgot/', forgot_password_view, name='forgot'),
     path('reset-password/<uidb64>/<token>/', reset_password_view, name='reset_password'),
     path('change-password/', change_password_view, name='change_password'),
-]   
+    path('reviews/', user_reviews_view, name='user_reviews'),  # added
+]
 

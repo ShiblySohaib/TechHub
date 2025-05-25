@@ -6,8 +6,8 @@
 .card-img-top {
     height: 220px;
     object-fit: cover;
-    width: 100%;
-}
+    padding: 20px;
+}    
 </style>
 <div class="container mt-4">
     <h2 class="mb-4">Products in {{ category.name }}</h2>
@@ -15,13 +15,26 @@
         {% for product in products %}
         <div class="col">
             <div class="card h-100 shadow-sm">
+                <a href="{% url 'product_detail' product.slug %}" class="stretched-link"></a>
                 <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
                 <div class="card-body">
+                    {% with avg_rating=product.average_approved_rating %}
+                    <div class="mb-2">
+                        {% if avg_rating %}
+                            <span class="badge bg-warning text-dark">&#9733; {{ avg_rating }} / 5</span>
+                        {% else %}
+                            <span class="badge bg-secondary">No ratings yet</span>
+                        {% endif %}
+                        {% if product.is_new_arrival %}
+                            <span class="badge bg-info text-dark ms-2">New Arrival</span>
+                        {% endif %}
+                    </div>
+                    {% endwith %}
                     <h5 class="card-title">{{ product.name }}</h5>
                     <p class="card-text">{{ product.description|truncatewords:20 }}</p>
                     <span class="badge bg-success mb-2">${{ product.price }}</span>
                     <p class="mb-1">Stock: {{ product.stock }} {{ product.unit }}</p>
-                    {% if product.is_avaiable %}
+                    {% if product.stock > 0 %}
                         <span class="badge bg-primary">Available</span>
                     {% else %}
                         <span class="badge bg-danger">Out of Stock</span>

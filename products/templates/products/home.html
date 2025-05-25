@@ -46,13 +46,13 @@
 <div class="container mt-4">
     <!-- Featured Products Carousel -->
     <h2 class="mb-4">Featured Products</h2>
-    <div id="featuredCarousel" class="carousel slide mb-5" data-bs-ride="carousel">
+    <div id="featuredCarousel" class="carousel slide mb-5" data-bs-ride="carousel" data-bs-interval="3000">
         <div class="carousel-inner">
             {% for product in featured_products %}
             <div class="carousel-item {% if forloop.first %}active{% endif %}">
                 <div class="row justify-content-center align-items-center">
                     <div class="col-md-6 text-center">
-                        <img src="{{ product.image.url }}" class="featured-img rounded" alt="{{ product.name }}">
+                        <img src="{{ product.image.url }}" class="featured-img rounded" alt="{{ product.name }}" style="cursor:pointer;" onclick="window.location.href='{% url 'product_detail' product.slug %}'">
                         <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded p-2 mt-2">
                             <h5>{{ product.name }}</h5>
                             <p>{{ product.description|truncatewords:15 }}</p>
