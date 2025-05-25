@@ -29,6 +29,14 @@
                                     <strong>Comment:</strong>
                                     <textarea name="comment_{{ review.id }}" class="form-control" rows="2">{{ review.review }}</textarea>
                                 </div>
+                                <div class="mb-2">
+                                    <strong>Status:</strong>
+                                    {% if review.is_approved %}
+                                        <span class="badge bg-success">Approved</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">Pending approval</span>
+                                    {% endif %}
+                                </div>
                             </div>
                             <div class="ms-2">
                                 <button type="submit" name="delete_review" value="{{ review.id }}" class="btn btn-danger btn-sm">Delete</button>

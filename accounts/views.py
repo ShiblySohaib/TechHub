@@ -17,6 +17,7 @@ def signup_view(request):
         if form.is_valid():
             user = form.save()
             send_verification_email(request, user)
+            messages.success(request, "Account created successfully! Please check your email to verify your account.")
             return redirect("login")
             #test verification
             # verification_link = test_verification_email(request, user)
@@ -115,7 +116,15 @@ def reset_password_view(request, uidb64, token):
 def profile_view(request):
     user = request.user
     if request.method == "POST":
-        user.email = request.POST.get("email", user.email)
+        if request.POST.get("email")!= user.email:
+            if get_user_model().objects.filter(email=request.POST.get("email")).exists():
+                messages.error(request, "Email already exists.")
+                return render(request, "accounts/profile.html", {"user": user})
+            else:
+                user.email = request.POST.get("email")
+                user.is_verified = False
+                send_verification_email(request, user)
+                messages.success(request, "Email updated successfully! Please check your email to verify your new email address.")
         user.first_name = request.POST.get("first_name", user.first_name)
         user.last_name = request.POST.get("last_name", user.last_name)
         user.address = request.POST.get("address", user.address)
@@ -172,7 +181,6 @@ def user_reviews_view(request):
                 review_to_delete.delete()
                 messages.success(request, "Review deleted successfully.")
                 return redirect("user_reviews")
-        # Handle update
         updated = False
         for review in reviews:
             rating = request.POST.get(f"rating_{review.id}")
@@ -181,10 +189,11 @@ def user_reviews_view(request):
                 if float(rating) != review.rating or comment != review.review:
                     review.rating = float(rating)
                     review.review = comment
+                    review.is_approved = False
                     review.save()
                     updated = True
         if updated:
-            messages.success(request, "Your reviews have been updated.")
+            messages.success(request, "Your reviews are pending approval from an admin.")
         elif not delete_id:
             messages.info(request, "No changes detected.")
         return redirect("user_reviews")

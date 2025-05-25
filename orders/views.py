@@ -15,9 +15,12 @@ from products.models import Product
 from .models import Order, OrderProduct, Payment
 
 
+
 @login_required
 def place_order(request):
     if request.user.is_authenticated:
+        global global_user 
+        global_user = request.user
         cart = get_object_or_404(Cart, user=request.user)
     else:
         cart = get_object_or_404(Cart, session_key=get_session_key())
@@ -34,7 +37,7 @@ def place_order(request):
         quantity += cart_product.quantity
 
     if request.method == "POST":
-        payment_option = request.POST.get("payment_method")  # cash / sslcommercez
+        payment_option = request.POST.get("payment_method")
 
         try:
             current_date = datetime.datetime.now()
@@ -43,11 +46,11 @@ def place_order(request):
 
             order = Order.objects.create(
                 user=current_user,
-                mobile=current_user.mobile,
-                address=current_user.address,
-                country=current_user.country,
-                postcode=current_user.postcode,
-                city=current_user.city,
+                mobile=getattr(current_user, 'mobile', None) or "+8801234567891",
+                address=getattr(current_user, 'address', None) or "N/A",
+                country=getattr(current_user, 'country', None) or "N/A",
+                postcode=getattr(current_user, 'postcode', None) or "0000",
+                city=getattr(current_user, 'city', None) or "N/A",
                 order_note=request.POST.get("order_note", ""),
                 order_total=total,
                 status="Pending",
@@ -63,13 +66,15 @@ def place_order(request):
                 )
 
                 product = Product.objects.get(id=cart_item.product.id)
-                if product.stock >= cart_item.quantity:
-                    product.stock -= cart_item.quantity
-                    product.save()
+                
 
 
             if payment_option == "cash":
                 cart_products.delete()
+                if product.stock >= cart_item.quantity:
+                    product.stock -= cart_item.quantity
+                    product.save()
+                order.status = "Completed"
                 order.save()
                 return render(request, "orders/order-success.html", {"order": order})
             elif payment_option == "sslcommerz":
@@ -91,12 +96,12 @@ def place_order(request):
 
 def payment(request):
     mypayment = SSLCSession(
-        sslc_is_sandbox=settings.SSLCOMMERZ_IS_SANDBOX,
+        sslc_is_sandbox=bool(settings.SSLCOMMERZ_IS_SANDBOX),
         sslc_store_id=settings.SSLCOMMERZ_STORE_ID,
         sslc_store_pass=settings.SSLCOMMERZ_STORE_PASS,
     )
 
-    status_url = request.build_absolute_uri("payment_status")
+    status_url = request.build_absolute_uri("status")
 
     mypayment.set_urls(
         success_url=status_url,
@@ -108,13 +113,26 @@ def payment(request):
     user = request.user
     order = Order.objects.filter(user=user, status="Pending").last()
 
+    order_products = OrderProduct.objects.filter(order=order).select_related("product")
+    if order_products.exists():
+        first_product = order_products[0].product
+        product_category = getattr(first_product, "category", "general")
+        product_name = first_product.name
+        num_of_item = sum([op.quantity for op in order_products])
+        shipping_method = "YES"
+    else:
+        product_category = "general"
+        product_name = "product"
+        num_of_item = 1
+        shipping_method = "NO"
+
     mypayment.set_product_integration(
         total_amount=order.order_total,
         currency="BDT",
-        product_category="clothing",
-        product_name="demo-product",
-        num_of_item=2,
-        shipping_method="YES",
+        product_category=product_category,
+        product_name=product_name,
+        num_of_item=num_of_item,
+        shipping_method=shipping_method,
         product_profile="None",
     )
 
@@ -137,6 +155,7 @@ def payment(request):
     )
 
     response_data = mypayment.init_payment()
+    print(response_data)
     if response_data["status"] == "FAILED":
         order.status = "Failed"
         order.save()
@@ -152,10 +171,10 @@ def payment_status(request):
             val_id = payment_data["val_id"]
             tran_id = payment_data["tran_id"]
 
-            order = Order.objects.filter(user=request.user).last()
+            order = Order.objects.filter(user=global_user).last()
 
             payment = Payment.objects.create(
-                user=request.user,
+                user=global_user,
                 payment_id=val_id,
                 payment_method="SSLCommerz",
                 amount_paid=order.order_total,
@@ -166,8 +185,15 @@ def payment_status(request):
             order.payment = payment
             order.save()
 
+            order_products = OrderProduct.objects.filter(order=order).select_related("product")
+            for order_product in order_products:
+                product = order_product.product
+                if product.stock >= order_product.quantity:
+                    product.stock -= order_product.quantity
+                    product.save()
+
             # CartItems will be automatically deleted
-            Cart.objects.filter(user=request.user).delete()
+            Cart.objects.filter(user=global_user).delete()
 
             context = {
                 "order": order,
